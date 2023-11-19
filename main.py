@@ -9,7 +9,7 @@ import keyboard
 camera = bettercam.create(output_idx=0, output_color="BGR")
 
 left, top = (1920 - 240) // 2, (1080 - 640) // 2
-right, bottom = left + 640, top + 640
+right, bottom = left + 840, top + 340
 region = (left, top, right, bottom)
 
 WindowCap = True
@@ -133,11 +133,11 @@ def capture_window_screenshot(window_title):
             # Bring the window to the front (optional, for active window capture)
             #window.activate()
             # Get window bounds
-            '''left, top, width, height = window.left, window.top, window.width, window.height'''
+            #left, top, width, height = window.left, window.top, window.width, window.height
 
             #print(left,"",top,"",width,"",height)
             # Capture the screenshot
-            #frame = camera.grab(region=(left, top, width, height))
+            #frame = camera.grab(region=(left // 2, top // 2, width, height))
             frame = camera.grab(region=region)
             return frame
         else:
@@ -152,7 +152,7 @@ cascade_cactus  = cv2.CascadeClassifier(r'C:\Users\Alt21\Documents\Python_Projec
 Vision_Trex = Vision(None)
 
 
-JUMP_THRESHOLD = 250
+JUMP_THRESHOLD = 225
 while WindowCap:
     start_time = time.time()
     frame = capture_window_screenshot('Night T-Rex Game - Brave')
