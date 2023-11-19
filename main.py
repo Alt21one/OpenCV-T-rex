@@ -1,18 +1,18 @@
-import cv2 
-import numpy as np
+import bettercam
 import pygetwindow as gw
-import pyautogui
 import time
-import os
-import math
-import time
+import numpy as np
+import cv2
+import keyboard
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-#need_img = r'C:\Users\Alt21\Documents\Python_Projects\OpenCV_Test_2_Real_time\Screenshot_22.png'
-#base_dir = r'C:\Users\Alt21\Documents\Python_Projects\OpenCV_Test_2_Real_time\Training'
-#positive_dir = os.path.join(base_dir, 'positive')
-#negative_dir = os.path.join(base_dir, 'negative')
+camera = bettercam.create(output_idx=0, output_color="BGR")
+
+left, top = (1920 - 240) // 2, (1080 - 640) // 2
+right, bottom = left + 640, top + 640
+region = (left, top, right, bottom)
+
+WindowCap = True
 
 class Vision:
 
@@ -121,119 +121,88 @@ class Vision:
         return haystack_img
 
 
-class WindowCapture:
-    def __init__(self,window_title):
-        # find the handle for the window we want to capture
-        self.image = None
-        self.window_title = window_title
-        self.update_handle()
-  
+def capture_window_screenshot(window_title):
+    try:
+        # Find the window by title
+        window = gw.getWindowsWithTitle(window_title)[0]
+        if window is not None:
+            # If the window is minimized, restore it
+            if window.isMinimized:
+                window.restore()
+            
+            # Bring the window to the front (optional, for active window capture)
+            #window.activate()
+            # Get window bounds
+            '''left, top, width, height = window.left, window.top, window.width, window.height'''
 
-    def update_handle(self):
-        # Try to find the window and update the window handle
-        windows = gw.getWindowsWithTitle(self.window_title)
-        self.hwnd = windows[0] if windows else None
-
-    def get_window_image(self):
-        win = gw.getWindowsWithTitle(self.window_title)[0]  
-        if win:
-            if win.isMinimized:
-                win.restore()
-
-            x, y, width, height = win.left, win.top, win.width, win.height
-            img = pyautogui.screenshot(region=(x+50, y/2, width-100, height-400))
-            #img = IG.grab().resize(x+50, y/2, width-100, height-400)
-            #img = pyautogui.screenshot(region=(x/2, y/2, width, height/2))
-
-            return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-
+            #print(left,"",top,"",width,"",height)
+            # Capture the screenshot
+            #frame = camera.grab(region=(left, top, width, height))
+            frame = camera.grab(region=region)
+            return frame
         else:
+            print("Window not found.")
             return None
-        
-    def get_screen_position(self):
-        if self.hwnd:
-            # Return a tuple of x, y, width, and height
-            return self.hwnd.left, self.hwnd.top, self.hwnd.width, self.hwnd.height
-        else:
-            print("Window not found!")
-            return None
-    
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
 
-       
-    
-window_title = "Night T-Rex Game - Brave"  # Replace with the title of your window
-
-cascade_cactus  = cv2.CascadeClassifier(r'C:\Users\Alt21\Documents\Python_Projects\OpenCV_Test_2_Real_time\cascade_over\cascade.xml')
 cascade_Trex = cv2.CascadeClassifier(r'C:\Users\Alt21\Documents\Python_Projects\OpenCV_Test_2_Real_time\cascade_T-rex\cascade.xml')
-
+cascade_cactus  = cv2.CascadeClassifier(r'C:\Users\Alt21\Documents\Python_Projects\OpenCV_Test_2_Real_time\cascade\cascade.xml')
 Vision_Trex = Vision(None)
 
 
-window_capture = WindowCapture(window_title)
-print(window_capture.get_screen_position())
-   
-JUMP_THRESHOLD = 250  
-while True:
- 
-    start_time = time.time()  # Start time for calculating FPS
-    img = window_capture.get_window_image()
+JUMP_THRESHOLD = 250
+while WindowCap:
+    start_time = time.time()
+    frame = capture_window_screenshot('Night T-Rex Game - Brave')
 
- 
-   
-    if img is not None:
+    if frame is None:
+        continue  # Skip this iteration
 
-        # Detect T-rex and cacti in the frame
-        rectangles_TRex = cascade_Trex.detectMultiScale(img)
-        rectangles_cactus = cascade_cactus.detectMultiScale(img)
+    rectangles_TRex = cascade_Trex.detectMultiScale(frame)
+    rectangles_cactus = cascade_cactus.detectMultiScale(frame)
 
-        # Draw rectangles around T-rex and cacti
-        Vision_Trex.draw_rectangles(img, rectangles_TRex)
-        Vision_Trex.draw_rectangles(img, rectangles_cactus)
+    # Draw rectangles around T-rex and cacti
+    Vision_Trex.draw_rectangles(frame, rectangles_TRex)
+    Vision_Trex.draw_rectangles(frame, rectangles_cactus)
 
-        x_trex = None
-        y_trex = None
-        x_closest_cactus = None
-        y_closest_cactus = None
+    
+    x_trex = None
+    y_trex = None
+    x_closest_cactus = None
+    y_closest_cactus = None
 
 
-        for (x, y, w, h) in rectangles_TRex:
+    for (x, y, w, h) in rectangles_TRex:
             x_trex = x 
             y_trex = y  
-            print("T-rex: ", x_trex)
             break              
             
-        for (x, y, w, h) in rectangles_cactus:
+    for (x, y, w, h) in rectangles_cactus:
             if x_trex is not None:
             
                 if x > x_trex and (x_closest_cactus is None or x < x_closest_cactus):
                     x_closest_cactus = x
                     y_closest_cactus = y
-                    print("x_closest_cactus: ", x_closest_cactus)
 
-        if x_trex is not None and x_closest_cactus is not None:
+    if x_trex is not None and x_closest_cactus is not None:
             distance_to_cactus = x_closest_cactus - x_trex
             if distance_to_cactus <= JUMP_THRESHOLD:
-                print("Jump!")  
-                print(distance_to_cactus)
-                pyautogui.press('space')
-                
-        cv2.line(img,(x_trex,y_trex),(x_closest_cactus,y_closest_cactus),(0,255,0), 2)
+                keyboard.press('space')
 
-        cv2.imshow('image',img)
-        
-        key = cv2.waitKey(1)
-        '''if key == ord('q'):  # Exit if 'q' is pressed
-            break
-        elif key == ord('f'):
-            cv2.imwrite(os.path.join(positive_dir, '{}.jpg'.format(start_time)), img)
-        elif key == ord('d'):
-            cv2.imwrite(os.path.join(negative_dir, '{}.jpg'.format(start_time)), img)'''
-    else:
+
+                 
+    #cv2.line(frame,(x_trex,y_trex),(x_closest_cactus,y_closest_cactus),(0,255,0), 2)
+
+    cv2.imshow("Camera Frame", frame)
+    if cv2.waitKey(1) == ord('q'):
         break
 
-    # FPS calculation
     fps = 1.0 / (time.time() - start_time)
     print("FPS: {:.2f}".format(fps))
 
+camera.release()    
 cv2.destroyAllWindows()
+
 
