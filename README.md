@@ -16,8 +16,8 @@ Once the window is correctly positioned and all configurations are verified, you
 5-Monitor the Bot:
 Keep an eye on the bot's operation during its initial run. This will help you catch any unexpected behavior early on.
 
-# Credit to learncodebygaming: https://github.com/learncodebygaming/opencv_tutorials
-# Credit to RootKit: https://github.com/RootKit-Org/BetterCam
+Credit to learncodebygaming: https://github.com/learncodebygaming/opencv_tutorials
+Credit to RootKit: https://github.com/RootKit-Org/BetterCam
 
 ![Screenshot_24](https://github.com/Alt21one/OpenCV-T-rex/assets/125756064/0357bb80-a4be-447a-ad7c-0f2f62a6d91b)
 
